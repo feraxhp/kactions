@@ -1,0 +1,51 @@
+# MIT Licence
+# Copyright 2024 feraxhp
+
+
+name: 🔨 WasmBuild
+author: feraxhp
+description: 'An action to build the Wasm Distributable of Compose Multiplatform'
+
+inputs:
+  path:
+    description: 'Path to the project root'
+    required: false
+    default: ${{ github.workspace }}
+
+  module:
+    description: 'Module or modules for the package to compile, it has to initiate with :'
+    required: false
+    default: ':composeApp'
+
+outputs:
+  path:
+    description: 'path of the result distributable'
+    value: ${{ steps.result.outputs.path }}
+
+runs:
+  using: composite
+  steps:
+    - name: ⚙️ KMP Dependencies
+      uses: feraxhp/kactions/.github/actions/KmpConfig@3e61ef2722a10bba94a24e4d94f25168724671fd
+      with:
+        path: ${{ inputs.path }}
+
+    - name: 🔨 Build with Gradle
+      run: ./gradlew $MODULE:wasmJsBrowserDistribution
+      working-directory: ${{ inputs.path }}
+      shell: bash
+      env:
+        MODULE: ${{ inputs.module }}
+
+    - name: 🧪 Result
+      id: result
+      shell: bash
+      run: |
+        echo "path=.${input//:/\/}/build/dist/wasmJs/productionExecutable" >> "$GITHUB_OUTPUT"
+
+      env:
+        input: ${{ inputs.module }}
+
+
+# See LICENCE in the project root
+# for the full licence detail.

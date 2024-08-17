@@ -1,0 +1,32 @@
+# MIT Licence
+# Copyright 2024 feraxhp
+
+
+name: ⚙️ KmpConfig
+author: feraxhp
+description: 'An action to add dependencies to work with Compose Multiplatform'
+
+inputs:
+  path:
+    description: 'Path to the project root'
+    required: true
+  
+runs:
+  using: composite
+  steps:
+    - name: 🧪 Setup Gradle
+      uses: gradle/gradle-build-action@v3
+
+    - name: 📲 Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: 17
+
+    - name: 🔓 chmod +x gradlew
+      run: chmod +x gradlew
+      shell: bash
+      working-directory: ${{ inputs.path }}
+
+# See LICENCE in the project root
+# for the full licence detail.

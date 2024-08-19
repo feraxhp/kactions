@@ -1,0 +1,83 @@
+# MIT Licence
+# Copyright 2024 feraxhp
+
+
+name: Publish Web App
+run-name: 🚀 Publish Web App 🚀
+on:
+  workflow_call:
+    inputs:
+      platform:
+        type: string
+        description: 'Select Between: Wasm, Js'
+        required: false
+        default: 'Wasm'
+      module:
+        type: string
+        description: 'Module to be compiled, default :composeApp'
+        required: false
+        default: ':composeApp'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  sample:
+    name: 📟 Deploy 2 pages
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: 🗃️ Checkout code
+        uses: actions/checkout@v4
+      
+      - name: 🧩 Build Wasm
+        id: packagew
+        if: inputs.platform == 'Wasm'
+        uses: feraxhp/kactions/.github/actions/WasmBuild@8d7a3f94be07bf1ec11ee18c0f0cd1b936f689bd
+        with:
+          path: ${{ inputs.path }}
+          module: ${{ inputs.module }}
+      
+      - name: 🧩 Build Js
+        id: packagej
+        if: inputs.platform == 'Js'
+        uses: feraxhp/kactions/.github/actions/JsBuild@8d7a3f94be07bf1ec11ee18c0f0cd1b936f689bd
+        with:
+          path: ${{ inputs.path }}
+          module: ${{ inputs.module }}
+
+      - name: 🪄 Select path
+        id: package
+        shell: bash
+        run: |
+          if [[ $wasm ]]; then echo "path=${{ steps.packagew.outputs.path }}" >> "$GITHUB_OUTPUT"; else echo "path=${{ steps.packagej.outputs.path }}" >> "$GITHUB_OUTPUT"; fi
+        env:
+          wasm: inputs.platform == 'Wasm'
+
+      - name: 📤 Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ steps.package.outputs.path }}
+
+      - name: 📡 Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: 🎉 Congratulations 🎉
+        run: |
+          echo "Your page is Up"
+          echo "🎉 Congratulations 🎉"
+
+
+# See LICENCE in the project root
+# for the full licence detail.

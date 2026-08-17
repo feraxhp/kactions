@@ -68,6 +68,7 @@ runs:
       id: result
       shell: bash
       run: |
+        mkdir ./release
         mv ${{ steps.sign_app.outputs.signedReleaseFile }} ./release/androidApp-release.apk
         echo "path=./release/androidApp-release.apk" >> "$GITHUB_OUTPUT"
       

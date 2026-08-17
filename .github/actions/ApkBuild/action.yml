@@ -64,16 +64,17 @@ runs:
       env:
         BUILD_TOOLS_VERSION: "34.0.0"
     
-    - uses: actions/upload-artifact@v4
-      with:
-        name: Signed app APK
-        path: ${{ steps.sign_app.outputs.signedReleaseFile }}
-  
     - name: 🧪 Result
       id: result
       shell: bash
       run: |
-        echo "path=${{ steps.sign_app.outputs.signedReleaseFile }}" >> "$GITHUB_OUTPUT"
+        mv ${{ steps.sign_app.outputs.signedReleaseFile }} ./release/androidApp-release.apk
+        echo "path=./release/androidApp-release.apk" >> "$GITHUB_OUTPUT"
+      
+    - uses: actions/upload-artifact@v4
+      with:
+        name: apk
+        path: ${{ steps.result.outputs.path }}
 
 # See LICENCE in the project root
 # for the full licence detail.

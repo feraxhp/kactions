@@ -1,0 +1,81 @@
+# MIT Licence
+# Copyright 2026 feraxhp
+
+name: 📱 Android build
+author: feraxhp
+description: 'An action to build and sign an android APK'
+
+inputs:
+  path:
+    description: 'Path to the project root'
+    required: false
+    default: ${{ github.workspace }}
+  module:
+    description: 'Module or modules for the package to compile, it has to initiate with :'
+    required: false
+    default: ':androidApp'
+  signing_key:
+    description: 'Base64 encoded signing key'
+    required: true
+  alias:
+    description: 'Key alias'
+    required: true
+  key_store_password:
+    description: 'Keystore password'
+    required: true
+  key_password:
+    description: 'Key password'
+    required: true
+
+outputs:
+  path:
+    description: 'path of the result distributable'
+    value: ${{ steps.result.outputs.path }}
+
+runs:
+  using: composite
+  steps:
+    - name: ⚙️ KMP Dependencies
+      uses: feraxhp/kactions/.github/actions/KmpConfig@3e61ef2722a10bba94a24e4d94f25168724671fd
+      with:
+        path: ${{ inputs.path }}
+
+    - name: 🔨 Build with Gradle
+      run: ./gradlew ${{ inputs.module }}:assembleRelease
+      working-directory: ${{ inputs.path }}
+      shell: bash
+
+    - name: 📝 Format release directory
+      id: format_dir
+      shell: bash
+      run: |
+        MODULE_DIR="${{ inputs.module }}"
+        echo "dir=${MODULE_DIR#:}/build/outputs/apk/release/" >> "$GITHUB_OUTPUT"
+
+    - uses: noriban/sign-android-release@v5
+      id: sign_app
+      name: Sign app APK
+      with:
+        releaseDirectory: ${{ steps.format_dir.outputs.dir }}
+        signingKeyBase64: ${{ inputs.signing_key }}
+        alias: ${{ inputs.alias }}
+        keyStorePassword: ${{ inputs.key_store_password }}
+        keyPassword: ${{ inputs.key_password }}
+      env:
+        BUILD_TOOLS_VERSION: "34.0.0"
+    
+    - name: 🧪 Result
+      id: result
+      shell: bash
+      run: |
+        mkdir ./release
+        mv ${{ steps.sign_app.outputs.signedReleaseFile }} ./release/androidApp-release.apk
+        echo "path=./release/androidApp-release.apk" >> "$GITHUB_OUTPUT"
+      
+    - uses: actions/upload-artifact@v4
+      with:
+        name: apk
+        path: ${{ steps.result.outputs.path }}
+
+# See LICENCE in the project root
+# for the full licence detail.

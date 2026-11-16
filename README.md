@@ -117,8 +117,8 @@ jobs:
 - [x] KmpLibrary
 - [x] Wasm App
 - [x] Js App
-- [ ] Android App << Work in progress
-- [ ] Desktop App
+- [x] Android App
+- [ ] Desktop App << Work in progress
   - [ ] Linux
   - [ ] Windows
   - [ ] MacOs

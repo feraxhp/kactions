@@ -67,7 +67,11 @@ jobs:
 
       - name: 📡 Publish To Maven Central
         run: |
-          ./gradlew :ktheme:publishAndReleaseToMavenCentral --no-configuration-cache --stacktrace
+          ./gradlew $MODULE:publishAndReleaseToMavenCentral --no-configuration-cache --stacktrace
+        working-directory: ${{ inputs.path }}
+        shell: bash
+        env:
+          MODULE: ${{ inputs.module }}
 
       - name: 🎉 Congratulations 🎉
         run: |
